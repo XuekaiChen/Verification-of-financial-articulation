@@ -44,13 +44,9 @@ def get_all_field(json_data_path):
                 inverted_list[fields_name] = [table_name]
     # 合并大字典，{所有字段：数值列表}
     for field in all_field:
-        if field is None:  # 过滤fields为空的表  TODO 目前没有field为空的表
-            continue
         for field_name, field_num_list in field.items():
-            if field_name == "":  # 过滤字段为空的项  TODO 目前没有字段为空的项
-                continue
-            # 去除非数字或全0列表 TODO 全0列表是否去除
-            if not is_number_list(field_num_list) or all(i == 0.0 for i in field_num_list):
+            # 去除非数字列表
+            if not is_number_list(field_num_list):
                 continue
             if field_name not in json_data2:
                 json_data2[field_name] = [field_num_list]
