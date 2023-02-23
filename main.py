@@ -42,25 +42,49 @@ if __name__ == "__main__":
     pdf = pdfplumber.open(file_path)
 
     print("----------------------规则提取-------------------------")
-    rule_dict = get_rule(rule_path)
+    rule_dict = get_rule(path=rule_path)
 
     print("----------------------表格抽取-------------------------")
-    extract_all_table(pdf, tables_folder)  # 目前将表格存入excel
-    excels2json(tables_folder, json_data_path)  # 存入json文件
+    extract_all_table(pdf=pdf, out_folder=tables_folder)  # 目前将表格存入excel
+    excels2json(excel_folder=tables_folder, out_json=json_data_path)  # 存入json文件
     with open(json_data_path, 'r', encoding='utf8') as fp:
         json_data = json.load(fp)
 
     print("----------------------同名字段跨表校验-------------------------")
-    json_data2, inverted_list, cross_result = precheck_and_get_dict(json_data, pdf, doc, cross_result)
+    json_data2, inverted_list, cross_result = precheck_and_get_dict(
+        chart_data=json_data,
+        pdf=pdf,
+        doc=doc,
+        cross_result=cross_result
+    )
 
     print("----------------------规则校验-------------------------")
-    cross_result, inner_result = judge_from_rule(json_data2, rule_dict, pdf, doc, inverted_list, cross_result, inner_result)
+    cross_result, inner_result = judge_from_rule(
+        chart_data2=json_data2,
+        rules=rule_dict,
+        pdf=pdf,
+        doc=doc,
+        inverted_list=inverted_list,
+        cross_result=cross_result,
+        inner_result=inner_result
+    )
 
     print("----------------------表内校验-------------------------")
-    inner_result = inner_check(json_data, pdf, doc, inner_result)
+    inner_result = inner_check(
+        chart_data=json_data,
+        pdf=pdf,
+        doc=doc,
+        inner_result=inner_result
+    )
 
     print("----------------------文表校验-------------------------")
-    text_result = text_check(json_data2, pdf, doc, inverted_list, text_result)
+    text_result = text_check(
+        chart_data=json_data2,
+        pdf=pdf,
+        doc=doc,
+        inverted_list=inverted_list,
+        text_result=text_result
+    )
 
     # 存储输出json文件
     with open(cross_out_path, 'w', encoding='utf-8') as f:

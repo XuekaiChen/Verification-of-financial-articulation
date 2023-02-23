@@ -33,19 +33,19 @@ def checklen(list_a, all_dict):
 
 # 同名字段跨表校验 + 得到倒排表inverted_list + 整合字段词典json_data2
 # TODO 目前同字段名校验准确率最低，因为很可能字段名相同但说的不是一个东西，导致数据不同
-def precheck_and_get_dict(json_data, pdf, doc, cross_result):
-    json_data2 = {}
+def precheck_and_get_dict(chart_data, pdf, doc, cross_result):
+    json_data = {}
     inverted_list = {}  # 倒排表 {字段：所属表格}
-    for excel_name, chart in json_data.items():
+    for excel_name, chart in chart_data.items():
         for field_name, field_value in chart.items():
             # 排除非数字列表 或 ”合计“等字段
             if (not is_number_list(field_value)) or (field_name in general_field_name):
                 continue
-            elif field_name not in json_data2:
-                json_data2[field_name] = [field_value]
+            elif field_name not in json_data:
+                json_data[field_name] = [field_value]
                 inverted_list[field_name] = [excel_name]
             else:  # json中已有同名字段数据，与每个字段数据比对，若可以匹配，则定位；若匹配错误，则加入字段数据
-                for idx, exist_value in enumerate(json_data2[field_name]):
+                for idx, exist_value in enumerate(json_data[field_name]):
                     # 校验正确，输出[]；校验错误，输出[1,2]；未配对，输出“字段匹配错误”，加入列表
                     check_result = equal_check(exist_value, field_value)
                     if check_result != "字段匹配错误":
@@ -69,12 +69,12 @@ def precheck_and_get_dict(json_data, pdf, doc, cross_result):
                         }
                         cross_result.append(cross_item)
                     if check_result:  # 校验错误或未匹配的数字列表都加入备选
-                        json_data2[field_name].append(field_value)
+                        json_data[field_name].append(field_value)
                         inverted_list[field_name].append(excel_name)  # 倒排表添加元素
-    return json_data2, inverted_list, cross_result
+    return json_data, inverted_list, cross_result
 
 
-def judge_from_rule(json_data2, rules, pdf, doc, inverted_list, cross_result, inner_result):
+def judge_from_rule(chart_data2, rules, pdf, doc, inverted_list, cross_result, inner_result):
     # 规则四则运算判断，之中可能包含表内校验
 
     for xsltype, rule2 in rules.items():
@@ -86,17 +86,17 @@ def judge_from_rule(json_data2, rules, pdf, doc, inverted_list, cross_result, in
             down_field_list = re.split(' [+\-*/] ', down_field)
             operators = re.findall('[+\-*/]', down_field)
             # TODO 优化此处代码
-            if up_field in json_data2 and listindir(down_field_list, json_data2):  # 所有字段名都在字典中
-                down_total = np.array(json_data2[down_field_list[0]][0])  # TODO 若json_data2[down_field_list[0]]有多个列表，应循环遍历
-                down_value_len = checklen(down_field_list, json_data2)  # 确保每个相加的数字列表长度都相等
+            if up_field in chart_data2 and listindir(down_field_list, chart_data2):  # 所有字段名都在字典中
+                down_total = np.array(chart_data2[down_field_list[0]][0])  # TODO 若chart_data2[down_field_list[0]]有多个列表，应循环遍历
+                down_value_len = checklen(down_field_list, chart_data2)  # 确保每个相加的数字列表长度都相等
                 if not down_value_len:
                     continue
-                for up_value in json_data2[up_field]:
+                for up_value in chart_data2[up_field]:
                     up_total = np.array(up_value)
                     if down_value_len == len(up_value):
                         # 进行四则运算
                         for ele_idx in range(len(operators)):
-                            element = np.array(json_data2[down_field_list[ele_idx + 1]][0])
+                            element = np.array(chart_data2[down_field_list[ele_idx + 1]][0])
                             if operators[ele_idx] == '+':
                                 down_total += element
                             elif operators[ele_idx] == '-':

@@ -17,8 +17,8 @@ def iseverylist_leneaual(list_a):
     return True
 
 
-def inner_check(json_data, pdf, doc, inner_result):
-    for chart_name, chart in json_data.items():
+def inner_check(chart_data, pdf, doc, inner_result):
+    for chart_name, chart in chart_data.items():
         # 表内字段名称列表
         field_list = list(chart.keys())
         # 判定所有数字列表长度是否相等，获取数字列表长度
