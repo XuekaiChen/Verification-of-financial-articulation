@@ -78,6 +78,7 @@ def locate_txt_info(pdf, doc, sentence):
                         bbox = fitz.Rect(out['x0'], out['top'], out['x1'], out['bottom'])
                         page.add_highlight_annot(bbox)
                         location_tetrad = {
+                            "页码": page_num,
                             "x0": out['x0'],
                             "top": out['top'],
                             "x1": out['x1'],
