@@ -1,6 +1,9 @@
 # 财务勾稽关系校验Verification of financial articulation
 
-## 1、准备工作。下载rules文件夹中的财务勾稽关系规则 
+## 1、准备工作。
+- 下载rules文件夹中的财务勾稽关系规则 
+- 安装python第三方库
+`pip install -r requirements.txt`
 
 ## 2、运行main.py函数。主要分为以下几个步骤：
 - `extract_rule.py`规则解析：将我们根据专家知识，人工制定的财务勾稽规则解析为字典对象。
