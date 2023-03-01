@@ -8,7 +8,7 @@ import re
 import numpy as np
 import fitz
 import pdfplumber
-from util import is_number_list, equal_check, locate_chart_info
+from util import is_number_list, equal_check, locate_cross_chart_info, locate_inner_chart_info
 
 general_field_name = ["其他", "合计", "小计", "1年以内", "1-2年", "2-3年"]
 
@@ -59,12 +59,16 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result):
                             print("出错列：", check_result)
                             print()
                         # 定位
-                        up_table_info = locate_chart_info(pdf, doc, inverted_list[field_name][idx], [field_name], [len(exist_value)+1], [check_result])
-                        down_table_info = locate_chart_info(pdf, doc, excel_name, [field_name], [len(field_value)+1], [check_result])
+                        up_table_info = locate_cross_chart_info(pdf, doc, inverted_list[field_name][idx], [field_name],
+                                                                [len(exist_value) + 1], [check_result])
+                        down_table_info = locate_cross_chart_info(pdf, doc, excel_name, [field_name],
+                                                                  [len(field_value) + 1], [check_result])
+                        if not up_table_info or not down_table_info:
+                            continue
                         cross_item = {
                             "名称": true_or_false,
                             "规则": field_name + " = " + field_name,
-                            "上勾稽表": up_table_info,
+                            "上勾稽表": up_table_info[0],
                             "下勾稽表": down_table_info
                         }
                         cross_result.append(cross_item)
@@ -74,9 +78,8 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result):
     return json_data, inverted_list, cross_result
 
 
-def judge_from_rule(chart_data2, rules, pdf, doc, inverted_list, cross_result, inner_result):
+def judge_from_rule(chart_data2, table_dict, rules, pdf, doc, inverted_list, cross_result, inner_result):
     # 规则四则运算判断，之中可能包含表内校验
-
     for xsltype, rule2 in rules.items():
         uprule2, downrule2 = rule2['uprule'], rule2['downrule']
         # 解析勾稽规则，查字典取值并运算，返回校验结果
@@ -112,29 +115,45 @@ def judge_from_rule(chart_data2, rules, pdf, doc, inverted_list, cross_result, i
                                 true_or_false = "正确"
                             else:
                                 true_or_false = "错误"
+                                print(xsltype)
                                 print(f"规则：{up_field} = {down_field}")
                                 print(up_total)
                                 print(down_total)
                                 print("出错列：", check_result)
                                 print()
-
-                            # 定位
-                            up_table_info = locate_chart_info(pdf, doc, inverted_list[up_field][0], [up_field], [len(up_total) + 1], [check_result])
-                            # TODO 考虑循环表格的问题，目前当所有下勾稽表字段都在一个表中；应该遍历所有字段共同出现的所有表
-                            down_tables = [inverted_list[down_name][0] for down_name in down_field_list]
-                            col_len_list = [len(down_total) + 1 for i in range(len(down_field_list))]
-                            check_result_list = [check_result for i in range(len(down_field_list))]
-                            down_table_info = locate_chart_info(pdf, doc, down_tables[0], down_field_list, col_len_list, check_result_list)
-
-                            json_item = {
-                                "名称": true_or_false,
-                                "规则": up_field + " = " + down_field,
-                                "上勾稽表": up_table_info,
-                                "下勾稽表": down_table_info
-                            }
                             if xsltype == "跨表":
+                                # 定位
+                                up_table_info = locate_cross_chart_info(pdf, doc, inverted_list[up_field][0], [up_field], [len(up_total) + 1], [check_result])
+                                down_tables = [inverted_list[down_name][0] for down_name in down_field_list]
+                                col_len_list = [len(down_total) + 1 for i in range(len(down_field_list))]
+                                check_result_list = [check_result for i in range(len(down_field_list))]
+                                down_table_info = locate_cross_chart_info(pdf, doc, down_tables[0], down_field_list, col_len_list, check_result_list)
+                                if not up_table_info or not down_table_info:
+                                    continue
+                                json_item = {
+                                    "名称": true_or_false,
+                                    "规则": up_field + " = " + down_field,
+                                    "上勾稽表": up_table_info[0],
+                                    "下勾稽表": down_table_info
+                                }
                                 cross_result.append(json_item)
                             elif xsltype == "表内":
+                                # 定位
+                                up_table_info = locate_inner_chart_info(pdf, doc, inverted_list[up_field][0], [up_field], [len(up_total) + 1], [check_result])
+                                down_tables = [inverted_list[down_name][0] for down_name in down_field_list]
+                                col_len_list = [len(down_total) + 1 for i in range(len(down_field_list))]
+                                check_result_list = [check_result for i in range(len(down_field_list))]
+                                down_table_info = locate_inner_chart_info(pdf, doc, down_tables[0], down_field_list, col_len_list, check_result_list)
+                                if not up_table_info or not down_table_info:
+                                    continue
+                                json_item = {
+                                    "名称": true_or_false,
+                                    "规则": up_field + " = " + down_field,
+                                    "表格编号": down_tables[0][:-5],
+                                    "表格内容": table_dict[down_tables[0][:-5]],
+                                    "上勾稽表字段": up_table_info[0],
+                                    "下勾稽表字段": down_table_info
+                                }
                                 inner_result.append(json_item)
 
     return cross_result, inner_result
@@ -147,11 +166,14 @@ if __name__ == "__main__":
     start = time.time()
     path = "预披露 景杰生物 2022-12-02  1-1 招股说明书_景杰生物.pdf"
     field_data_path = 'table_content.json'
-    with open(field_data_path, 'r', encoding='utf8') as fp:
+    with open(field_data_path, 'r', encoding='utf-8') as fp:
         field_data = json.load(fp)
     highlight_pdf = "Articulation_out/cross_highlight.pdf"
-    output_file1 = "Articulation_out/try_precheck.json"
-    output_file2 = "Articulation_out/try_rule.json"
+    output_file1 = "Articulation_out/try_rule_cross.json"
+    output_file2 = "Articulation_out/try_rule_inner.json"
+    table_dict_path = "table_dict.json"
+    with open(table_dict_path, 'r', encoding='utf-8') as fp:
+        table_dict = json.load(fp)
     cross_result = []
     inner_result = []
     doc = fitz.open(path)
@@ -161,7 +183,7 @@ if __name__ == "__main__":
     rule_dic = get_rule('rules')
     print()
     json_data2, inverted_list, cross_result = precheck_and_get_dict(field_data, pdf, doc, cross_result)
-    cross_result, inner_result = judge_from_rule(json_data2, rule_dic, pdf, doc, inverted_list, cross_result, inner_result)
+    cross_result, inner_result = judge_from_rule(json_data2, table_dict, rule_dic, pdf, doc, inverted_list, cross_result, inner_result)
 
     # 存储
     with open(output_file1, 'w', encoding='utf-8') as f:

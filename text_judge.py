@@ -8,7 +8,7 @@ import re
 import json
 import fitz
 from fuzzywuzzy import process
-from util import to_float_list, is_number_list, equal_check, locate_chart_info, locate_txt_info
+from util import to_float_list, is_number_list, equal_check, locate_cross_chart_info, locate_txt_info
 
 
 punctuation = '[\u3002\uff1b\uff0c\uff1a\u201c\u201d\uff08\uff09\uff1f\u300a\u300b]'
@@ -25,7 +25,7 @@ def match_strings(a: list, b: list):
 
 
 def get_all_field(json_data_path):
-    with open(json_data_path, 'r', encoding='utf8') as fp:
+    with open(json_data_path, 'r', encoding='utf-8') as fp:
         json_data = json.load(fp)
     json_data2 = {}
     all_field = list(json_data.values())
@@ -44,9 +44,13 @@ def get_all_field(json_data_path):
                 inverted_list[fields_name] = [table_name]
     # 合并大字典，{所有字段：数值列表}
     for field in all_field:
+        if field is None:  # 过滤fields为空的表  TODO 目前没有field为空的表
+            continue
         for field_name, field_num_list in field.items():
-            # 去除非数字列表
-            if not is_number_list(field_num_list):
+            if field_name == "":  # 过滤字段为空的项  TODO 目前没有字段为空的项
+                continue
+            # 去除非数字或全0列表 TODO 全0列表是否去除
+            if not is_number_list(field_num_list) or all(i == 0.0 for i in field_num_list):
                 continue
             if field_name not in json_data2:
                 json_data2[field_name] = [field_num_list]
@@ -116,7 +120,10 @@ def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list,
                     # 在表格中定位内容
                     chart_json_list = []
                     for table_name in inverted_list[matches[1]]:
-                        chart_json_list.append(locate_chart_info(pdf, doc, table_name, [matches[1]], [len(chart_num_list) + 1], [check_result]))
+                        table_info = locate_cross_chart_info(pdf, doc, table_name, [matches[1]], [len(chart_num_list) + 1], [check_result])
+                        if not table_info:
+                            continue
+                        chart_json_list.append(table_info[0])
                     output_item["勾稽表"] = chart_json_list
                     result_list.append(output_item)
 

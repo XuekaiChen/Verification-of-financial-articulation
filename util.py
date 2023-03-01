@@ -96,7 +96,7 @@ def locate_txt_info(pdf, doc, sentence):
 # 外层判断，若error_col为0 名称为正确，否则为错误
 # 文表、跨表勾稽在外层遍历所有表，单列为一个正确/错误项
 # field_list, col_num_list, error_col_list三者长度相同，为字段中元素个数
-def locate_chart_info(pdf, doc, chart_name, field_list, col_num_list, error_cols_list):
+def locate_cross_chart_info(pdf, doc, chart_name, field_list, col_num_list, error_cols_list):
     """
     输出样例
     result = [
@@ -142,3 +142,52 @@ def locate_chart_info(pdf, doc, chart_name, field_list, col_num_list, error_cols
                     }
                     result_list.append(json_result)
     return result_list
+
+
+# 输出结构与locate_cross_chart_info()不同，定位方式完全相同
+def locate_inner_chart_info(pdf, doc, chart_name, field_list, col_num_list, error_cols_list):
+    """
+    输出样例
+    result = [
+      {
+        "所在表格": "217-2",
+        "字段名称": "资产总计",
+        "错误列号": [],
+        "位置": {
+          "x0": 60.28127999999997,
+          "top": 731.3795400000001,
+          "x1": 535.1512000000003,
+          "bottom": 752.1085714285713
+        }
+      }
+    ],
+    """
+    result_list = []
+    for subtable_name in chart_name[:-5].split("_"):
+        # 根据表名提取表格及表格属性
+        page_num, table_num = int(subtable_name.split("-")[0]), int(subtable_name.split("-")[1]) - 1
+        table, table_attr = pdf.pages[page_num].extract_tables()[table_num], pdf.pages[page_num].find_tables()[
+            table_num]
+        # 遍历每个待搜寻字段
+        for field_name, col_num, error_cols in zip(field_list, col_num_list, error_cols_list):
+            # 遍历表格每一行
+            for row_num in range(len(table)):
+                if (table[row_num][0] is not None) and (table[row_num][0].replace("\n", "") == field_name) \
+                        and (col_num == len(table[row_num])):  # 字段在该行
+                    loc_tuple = table_attr.rows[row_num].bbox
+                    bbox = fitz.Rect(loc_tuple[0], loc_tuple[1], loc_tuple[2], loc_tuple[3])
+                    doc[page_num].add_highlight_annot(bbox)  # highlight
+                    json_result = {
+                        "所在表格": subtable_name,
+                        "字段名称": field_name,
+                        "错误列号": error_cols,
+                        "位置": {
+                            "x0": loc_tuple[0],
+                            "top": loc_tuple[1],
+                            "x1": loc_tuple[2],
+                            "bottom": loc_tuple[3]
+                        }
+                    }
+                    result_list.append(json_result)
+    return result_list
+

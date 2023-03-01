@@ -7,7 +7,7 @@ import json
 import fitz
 import pdfplumber
 import numpy as np
-from util import equal_check, locate_chart_info
+from util import equal_check, locate_inner_chart_info
 
 
 def iseverylist_leneaual(list_a):
@@ -17,7 +17,7 @@ def iseverylist_leneaual(list_a):
     return True
 
 
-def inner_check(chart_data, pdf, doc, inner_result):
+def inner_check(chart_data, table_dict, pdf, doc, inner_result):
     for chart_name, chart in chart_data.items():
         # 表内字段名称列表
         field_list = list(chart.keys())
@@ -57,16 +57,19 @@ def inner_check(chart_data, pdf, doc, inner_result):
                         print("出错列：", check_result)
                         print()
                     # 定位
-                    up_table_info = locate_chart_info(pdf, doc, chart_name, [up_field], [len(up_total) + 1], [check_result])
-                    # TODO：以下两行代码要简化，能加和的数字列长度都是相等的
+                    up_table_info = locate_inner_chart_info(pdf, doc, chart_name, [up_field], [len(up_total) + 1], [check_result])
                     col_len_list = [len(down_total) + 1 for i in range(len(down_field_list))]  # 所有每行的长度列表
                     check_result_list = [check_result for i in range(len(down_field_list))]  # 每行的错误列
-                    down_table_info = locate_chart_info(pdf, doc, chart_name, down_field_list, col_len_list, check_result_list)
+                    down_table_info = locate_inner_chart_info(pdf, doc, chart_name, down_field_list, col_len_list, check_result_list)
+                    if (not up_table_info) or (not down_table_info):
+                        continue
                     json_item = {
                         "名称": true_or_false,
                         "规则": up_field + " = " + down_field,
-                        "上勾稽表": up_table_info,
-                        "下勾稽表": down_table_info
+                        "表格编号": chart_name,
+                        "表格内容": table_dict[chart_name[:-5]],
+                        "上勾稽表字段": up_table_info[0],
+                        "下勾稽表字段": down_table_info
                     }
                     inner_result.append(json_item)
     return inner_result
@@ -78,16 +81,19 @@ if __name__ == "__main__":
     start = time.time()
     path = "预披露 景杰生物 2022-12-02  1-1 招股说明书_景杰生物.pdf"
     field_data_path = 'table_content.json'
+    table_dict_path = 'table_dict.json'
     highlight_pdf = "Articulation_out/inner_highlight.pdf"
     output_file = "Articulation_out/try_inner.json"
     doc = fitz.open(path)
     pdf = pdfplumber.open(path)
     inner_result = []
-    with open(field_data_path, 'r', encoding='utf8') as fp:
+    with open(field_data_path, 'r', encoding='utf-8') as fp:
         json_data = json.load(fp)
+    with open(table_dict_path, 'r', encoding='utf-8') as fp:
+        table_dict = json.load(fp)
 
     # 校验
-    inner_result = inner_check(json_data, pdf, doc, inner_result)
+    inner_result = inner_check(json_data, table_dict, pdf, doc, inner_result)
 
     # 存储
     with open(output_file, 'w', encoding='utf-8') as f:
