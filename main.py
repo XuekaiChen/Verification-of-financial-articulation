@@ -25,10 +25,10 @@ from text_judge import *
 
 if __name__ == "__main__":
     start = time.time()
+    # file_path = "浙江光华科技股份有限公司首次公开发行股票招股说明书（2021年12月28日报送）.pdf"
     file_path = "预披露 景杰生物 2022-12-02  1-1 招股说明书_景杰生物.pdf"
     rule_path = "rules"
-    tables_folder = "tables"
-    json_data_path = "table_content.json"
+    table_dict_path = "table_dict.json"
     out_folder = "Articulation_out"
     cross_result = []
     inner_result = []
@@ -45,9 +45,11 @@ if __name__ == "__main__":
     rule_dict = get_rule(path=rule_path)
 
     print("----------------------表格抽取-------------------------")
-    extract_all_table(pdf=pdf, out_folder=tables_folder)  # 目前将表格存入excel
-    excels2json(excel_folder=tables_folder, out_json=json_data_path)  # 存入json文件
-    with open(json_data_path, 'r', encoding='utf8') as fp:
+    # table_dict = extract_all_table(pdf=pdf)
+    # json_data = excels2json(table_dict=table_dict)
+    with open("table_dict.json", 'r', encoding='utf-8') as fp:
+        table_dict = json.load(fp)
+    with open("table_content.json", 'r', encoding='utf-8') as fp:
         json_data = json.load(fp)
 
     print("----------------------同名字段跨表校验-------------------------")
@@ -61,6 +63,7 @@ if __name__ == "__main__":
     print("----------------------规则校验-------------------------")
     cross_result, inner_result = judge_from_rule(
         chart_data2=json_data2,
+        table_dict=table_dict,
         rules=rule_dict,
         pdf=pdf,
         doc=doc,
@@ -72,6 +75,7 @@ if __name__ == "__main__":
     print("----------------------表内校验-------------------------")
     inner_result = inner_check(
         chart_data=json_data,
+        table_dict=table_dict,
         pdf=pdf,
         doc=doc,
         inner_result=inner_result
