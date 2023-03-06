@@ -45,12 +45,12 @@ if __name__ == "__main__":
     rule_dict = get_rule(path=rule_path)
 
     print("----------------------表格抽取-------------------------")
-    table_dict = extract_all_table(pdf=pdf)
-    json_data = excels2json(table_dict=table_dict)
-#     with open("table_dict.json", 'r', encoding='utf-8') as fp:
-#         table_dict = json.load(fp)
-#     with open("table_content.json", 'r', encoding='utf-8') as fp:
-#         json_data = json.load(fp)
+#     table_dict = extract_all_table(pdf=pdf)
+#     json_data = excels2json(table_dict=table_dict)
+    with open("table_dict.json", 'r', encoding='utf-8') as fp:
+        table_dict = json.load(fp)
+    with open("table_content.json", 'r', encoding='utf-8') as fp:
+        json_data = json.load(fp)
 
     print("----------------------同名字段跨表校验-------------------------")
     json_data2, inverted_list, cross_result = precheck_and_get_dict(
