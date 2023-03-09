@@ -4,12 +4,13 @@
 # Description：按页码顺序抽取招股书pdf中的表格，跨页表格可合并
 
 import os
+import json
 import pdfplumber
 import pandas as pd
 from tqdm import tqdm
 
 
-def extract_all_table(pdf, out_folder):
+def extract_all_table(pdf, out_path=False):
     # TODO：表格不规整，none可直接复制上一行内容
     temp_table = None
     df_tables = []
@@ -17,8 +18,8 @@ def extract_all_table(pdf, out_folder):
     for page in tqdm(pdf.pages[1:]):
         text = page.extract_text()
         page_num = int(text.strip().split("\n")[-1].split("-")[-1])  # 文本最后一行为页码
-        # 招股书页码指定
-        # if page_num < 308:
+        # # 招股书页码指定
+        # if page_num < 211:
         #     continue
         # if page_num >= 310:
         #     break
@@ -64,13 +65,16 @@ def extract_all_table(pdf, out_folder):
                         temp_table = pd.DataFrame(table)
                         table_name.append(str(page_num) + "-" + str(table_id + 1))
 
-    # 创建文件夹并存储excel格式表格
-    if not os.path.exists(out_folder):
-        os.makedirs(out_folder)
+    table_dict = {}
     for table_ele in df_tables:
         name = "_".join(table_ele[1])
-        table_ele[0].to_excel(f"{out_folder}\\{name}.xlsx", header=None, index=False)
-    # TODO：return一个对象，后续data2json直接对对象进行操作
+        table_dict[name] = table_ele[0].values.tolist()
+
+    if out_path:
+        with open(out_path, 'w', encoding='utf-8') as f:
+            json.dump(table_dict, f, ensure_ascii=False)
+
+    return table_dict
 
 
 if __name__ == "__main__":
@@ -78,7 +82,8 @@ if __name__ == "__main__":
     start = time.time()
     path = "预披露 景杰生物 2022-12-02  1-1 招股说明书_景杰生物.pdf"
     pdf = pdfplumber.open(path)
-    out_folder = "tables"
-    extract_all_table(pdf, out_folder)
+    out_path = "table_dict.json"
+    table_dic = extract_all_table(pdf, out_path)
     pdf.close()
     print("抽取表格用时：{:.2f}秒".format(time.time() - start))
+    print(list(table_dic.items())[:5])
