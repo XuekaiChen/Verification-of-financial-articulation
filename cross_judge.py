@@ -149,8 +149,8 @@ def judge_from_rule(chart_data2, table_dict, rules, pdf, doc, inverted_list, cro
                                 json_item = {
                                     "名称": true_or_false,
                                     "规则": up_field + " = " + down_field,
-                                    "表格编号": down_tables[0][:-5],
-                                    "表格内容": table_dict[down_tables[0][:-5]],
+                                    "表格编号": down_tables[0],
+                                    "表格内容": table_dict[down_tables[0]],
                                     "上勾稽表字段": up_table_info[0],
                                     "下勾稽表字段": down_table_info
                                 }

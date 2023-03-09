@@ -14,6 +14,7 @@ excel表格转json：data2json.py，将json_data2作为主函数公共内容
 定位+输出：util.py中的locate相关函数
 """
 import os
+import sys
 import time
 from pdf_tables_extract import extract_all_table
 from extract_rule import get_rule
@@ -45,12 +46,8 @@ if __name__ == "__main__":
     rule_dict = get_rule(path=rule_path)
 
     print("----------------------表格抽取-------------------------")
-#     table_dict = extract_all_table(pdf=pdf)
-#     json_data = excels2json(table_dict=table_dict)
-    with open("table_dict.json", 'r', encoding='utf-8') as fp:
-        table_dict = json.load(fp)
-    with open("table_content.json", 'r', encoding='utf-8') as fp:
-        json_data = json.load(fp)
+    table_dict = extract_all_table(pdf=pdf)
+    json_data = excels2json(table_dict=table_dict)
 
     print("----------------------同名字段跨表校验-------------------------")
     json_data2, inverted_list, cross_result = precheck_and_get_dict(

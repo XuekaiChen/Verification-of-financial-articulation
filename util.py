@@ -115,7 +115,7 @@ def locate_cross_chart_info(pdf, doc, chart_name, field_list, col_num_list, erro
     ]
     """
     result_list = []
-    for subtable_name in chart_name[:-5].split("_"):
+    for subtable_name in chart_name.split("_"):
         # 根据表名提取表格及表格属性
         page_num, table_num = int(subtable_name.split("-")[0]), int(subtable_name.split("-")[1]) - 1
         table, table_attr = pdf.pages[page_num].extract_tables()[table_num], pdf.pages[page_num].find_tables()[table_num]
@@ -163,7 +163,7 @@ def locate_inner_chart_info(pdf, doc, chart_name, field_list, col_num_list, erro
     ],
     """
     result_list = []
-    for subtable_name in chart_name[:-5].split("_"):
+    for subtable_name in chart_name.split("_"):
         # 根据表名提取表格及表格属性
         page_num, table_num = int(subtable_name.split("-")[0]), int(subtable_name.split("-")[1]) - 1
         table, table_attr = pdf.pages[page_num].extract_tables()[table_num], pdf.pages[page_num].find_tables()[

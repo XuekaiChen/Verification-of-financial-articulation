@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# Date       ：2023/3/9
+# Author     ：Chen Xuekai
+# Description：
 import math
 from functools import reduce
 import json

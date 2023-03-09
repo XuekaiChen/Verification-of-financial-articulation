@@ -67,7 +67,7 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result):
                         "名称": true_or_false,
                         "规则": up_field + " = " + down_field,
                         "表格编号": chart_name,
-                        "表格内容": table_dict[chart_name[:-5]],
+                        "表格内容": table_dict[chart_name],
                         "上勾稽表字段": up_table_info[0],
                         "下勾稽表字段": down_table_info
                     }
