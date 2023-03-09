@@ -4,8 +4,13 @@
 - 下载rules文件夹中的财务勾稽关系规则 
 - 安装python第三方库
 `pip install -r requirements.txt`
+- 封装为exe文件，在命令行输入`pyinstaller -i img/app_icon.ico -F main.py`，耐心等待几分钟
 
-## 2、运行main.py函数。主要分为以下几个步骤：
+## 2、运行方法1：直接运行可执行文件
+打开cmd到项目目录，运行`main.exe [url] [file_id]`
+
+## 3、运行方法2：使用python运行main.py函数
+在Terminal运行`main.py [url] [file_id]`，其中主要步骤如下：
 - `extract_rule.py`规则解析：将我们根据专家知识，人工制定的财务勾稽规则解析为字典对象。
 - `pdf_tables_extract.py`表格抽取：将pdf文件中的表格抽取为excel文件存储下来。
 - `data2json.py`excel表格转json格式：将存储下来的表格转换为方便处理和遍历的json格式。
