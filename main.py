@@ -17,39 +17,44 @@ import os
 import sys
 import time
 import wget
+import argparse
 from pdf_tables_extract import extract_all_table
 from extract_rule import get_rule
 from data2json import excels2json
 from cross_judge import *
 from inner_judge import *
 from text_judge import *
+import warnings
 
 
 if __name__ == "__main__":
     start = time.time()
 
     # cmd传参，建立文件夹
-    url = sys.argv[1]
-    file_id = sys.argv[2]
-    print("URL:\t", url)
-    print("file_id:\t", file_id)
-    if not os.path.exists(file_id):
-        os.makedirs(file_id)
+    warnings.filterwarnings("ignore")
+    parser = argparse.ArgumentParser(description='Verification of financial articulation')
+    parser.add_argument('-url', type=str, default="http://reportdocs.static.szse.cn/UpFiles/rasinfodisc1/202301/RAS_202301_51D8A3ECEC0E490684B762B34B84D833.pdf?v=%E4%B8%8A%E4%BC%9A%E7%A8%BF", help='Download link for the target pdf')
+    parser.add_argument('-file_id', type=str, default="00001", help='Unique pdf file identification')
+    args = parser.parse_args()
+    print("URL:\t", args.url)
+    print("file_id:\t", args.file_id)
+    if not os.path.exists(args.file_id):
+        os.makedirs(args.file_id)
 
     # 下载文件
-    file_path = os.path.join(file_id, file_id + ".pdf")
+    file_path = os.path.join(args.file_id, args.file_id + ".pdf")
     print("正在下载待校验PDF文件......")
-    wget.download(url=url, out=file_path)
+    wget.download(url=args.url, out=file_path)
 
     # 定义预备变量
     rule_path = "rules"
     cross_result = []
     inner_result = []
     text_result = []
-    cross_out_path = os.path.join(file_id, "main_cross.json")
-    inner_out_path = os.path.join(file_id, "main_inner.json")
-    text_out_path = os.path.join(file_id, "main_text.json")
-    pdf_out_path = os.path.join(file_id, "main_highlight.pdf")
+    cross_out_path = os.path.join(args.file_id, "main_cross.json")
+    inner_out_path = os.path.join(args.file_id, "main_inner.json")
+    text_out_path = os.path.join(args.file_id, "main_text.json")
+    pdf_out_path = os.path.join(args.file_id, "main_highlight.pdf")
 
     # 打开文件
     doc = fitz.open(file_path)
