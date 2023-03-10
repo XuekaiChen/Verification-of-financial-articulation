@@ -31,13 +31,24 @@ def is_number_list(l):
     return True
 
 
-# 两个列表元素逐个对比，返回错误索引列表 TODO：可能存在0.1251与1290相等的情况
-def get_error_list(list1, list2):
-    error_idx = []
+# 两个列表元素逐个对比，返回错误索引列表
+def get_error_list(list1, list2) -> dict:
+    temp_error = {}  # {错误列号：差值}
+    error_dict = {}
+    magnitude = 1  # 量级标注，解决万元问题
     for idx, (i, j) in enumerate(zip(list1, list2)):
-        if not (round(i, 2) == round(j, 2) or round(i, 2) == round(j / 10000, 2) or round(i / 10000, 2) == round(j, 2)):
-            error_idx.append(idx)
-    return error_idx
+        if round(i, 2) == round(j, 2):
+            magnitude = 1  # 数字列表量级差是固定的，只要确定一次就可以使用
+        elif round(i, 2) == round(j / 10000, 2):
+            magnitude = 10000
+        elif round(i / 10000, 2) == round(j, 2):
+            magnitude = 0.0001
+        else:
+            temp_error[idx] = [i, j]
+    # 按量级处理差值问题
+    for key, value in temp_error.items():
+        error_dict[key] = value[0]*magnitude - value[1]
+    return error_dict
 
 
 # 正确匹配则返回错误列号列表，无法匹配则返回“字段匹配错误”字符串
@@ -50,11 +61,11 @@ def equal_check(list1, list2):
     # 等长列表判定元素
     if len(list1) == len(list2):
         error_list1 = get_error_list(list1, list2)
-        error_list2 = get_error_list(list1, list2[::-1])
+        error_list2 = get_error_list(list1, list2[::-1])  # 考虑文表勾稽经常有反着说的
         error_list = min([error_list1, error_list2], key=len)
         if len(error_list) != len(list1):
             return error_list
-        else:
+        else:  # 全都不一样说明匹配错误
             return "字段匹配错误"
     else:
         return "字段匹配错误"

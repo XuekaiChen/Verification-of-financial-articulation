@@ -49,6 +49,8 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result):
                     # 校验正确，输出[]；校验错误，输出[1,2]；未配对，输出“字段匹配错误”，加入列表
                     check_result = equal_check(exist_value, field_value)
                     if check_result != "字段匹配错误":
+                        error_col = list(check_result.keys())
+                        diff_value = list(check_result.values())
                         if not check_result:  # check_result为空表示校验正确
                             true_or_false = "正确"
                         else:
@@ -56,24 +58,25 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result):
                             print(f"规则：{field_name} = {field_name}")
                             print(exist_value)
                             print(field_value)
-                            print("出错列：", check_result)
+                            print("出错列：", error_col)
                             print()
                         # 定位
                         up_table_info = locate_cross_chart_info(pdf, doc, inverted_list[field_name][idx], [field_name],
-                                                                [len(exist_value) + 1], [check_result])
+                                                                [len(exist_value) + 1], [error_col])
                         down_table_info = locate_cross_chart_info(pdf, doc, excel_name, [field_name],
-                                                                  [len(field_value) + 1], [check_result])
+                                                                  [len(field_value) + 1], [error_col])
                         if not up_table_info or not down_table_info:
                             continue
                         cross_item = {
                             "名称": true_or_false,
                             "规则": field_name + " = " + field_name,
                             "上勾稽表": up_table_info[0],
-                            "下勾稽表": down_table_info
+                            "下勾稽表": down_table_info,
+                            "差值": diff_value
                         }
                         cross_result.append(cross_item)
-                    if check_result:  # 校验错误或未匹配的数字列表都加入备选
-                        json_data[field_name].append(field_value)
+                    if check_result:
+                        json_data[field_name].append(field_value)  # 校验错误或未匹配的数字列表都加入备选
                         inverted_list[field_name].append(excel_name)  # 倒排表添加元素
     return json_data, inverted_list, cross_result
 
@@ -111,6 +114,8 @@ def judge_from_rule(chart_data2, table_dict, rules, pdf, doc, inverted_list, cro
                         # 校验
                         check_result = equal_check(up_total, down_total)
                         if check_result != "字段匹配错误":
+                            error_col = list(check_result.keys())
+                            diff_value = list(check_result.values())
                             if not check_result:  # check_result为空表示校验正确
                                 true_or_false = "正确"
                             else:
@@ -119,31 +124,32 @@ def judge_from_rule(chart_data2, table_dict, rules, pdf, doc, inverted_list, cro
                                 print(f"规则：{up_field} = {down_field}")
                                 print(up_total)
                                 print(down_total)
-                                print("出错列：", check_result)
+                                print("出错列：", error_col)
                                 print()
                             if xsltype == "跨表":
                                 # 定位
-                                up_table_info = locate_cross_chart_info(pdf, doc, inverted_list[up_field][0], [up_field], [len(up_total) + 1], [check_result])
+                                up_table_info = locate_cross_chart_info(pdf, doc, inverted_list[up_field][0], [up_field], [len(up_total) + 1], [error_col])
                                 down_tables = [inverted_list[down_name][0] for down_name in down_field_list]
                                 col_len_list = [len(down_total) + 1 for i in range(len(down_field_list))]
-                                check_result_list = [check_result for i in range(len(down_field_list))]
-                                down_table_info = locate_cross_chart_info(pdf, doc, down_tables[0], down_field_list, col_len_list, check_result_list)
+                                error_col_list = [error_col for i in range(len(down_field_list))]
+                                down_table_info = locate_cross_chart_info(pdf, doc, down_tables[0], down_field_list, col_len_list, error_col_list)
                                 if not up_table_info or not down_table_info:
                                     continue
                                 json_item = {
                                     "名称": true_or_false,
                                     "规则": up_field + " = " + down_field,
                                     "上勾稽表": up_table_info[0],
-                                    "下勾稽表": down_table_info
+                                    "下勾稽表": down_table_info,
+                                    "差值": diff_value
                                 }
                                 cross_result.append(json_item)
                             elif xsltype == "表内":
                                 # 定位
-                                up_table_info = locate_inner_chart_info(pdf, doc, inverted_list[up_field][0], [up_field], [len(up_total) + 1], [check_result])
+                                up_table_info = locate_inner_chart_info(pdf, doc, inverted_list[up_field][0], [up_field], [len(up_total) + 1], [error_col])
                                 down_tables = [inverted_list[down_name][0] for down_name in down_field_list]
                                 col_len_list = [len(down_total) + 1 for i in range(len(down_field_list))]
-                                check_result_list = [check_result for i in range(len(down_field_list))]
-                                down_table_info = locate_inner_chart_info(pdf, doc, down_tables[0], down_field_list, col_len_list, check_result_list)
+                                error_col_list = [error_col for i in range(len(down_field_list))]
+                                down_table_info = locate_inner_chart_info(pdf, doc, down_tables[0], down_field_list, col_len_list, error_col_list)
                                 if not up_table_info or not down_table_info:
                                     continue
                                 json_item = {
@@ -152,7 +158,8 @@ def judge_from_rule(chart_data2, table_dict, rules, pdf, doc, inverted_list, cro
                                     "表格编号": down_tables[0],
                                     "表格内容": table_dict[down_tables[0]],
                                     "上勾稽表字段": up_table_info[0],
-                                    "下勾稽表字段": down_table_info
+                                    "下勾稽表字段": down_table_info,
+                                    "差值": diff_value
                                 }
                                 inner_result.append(json_item)
 

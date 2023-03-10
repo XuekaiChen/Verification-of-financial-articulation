@@ -44,6 +44,8 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result):
                 down_total = np.sum(np.array(value_list[start_index:end_index]), axis=0)
                 check_result = equal_check(up_total, down_total)
                 if check_result != "字段匹配错误":
+                    error_col = list(check_result.keys())
+                    diff_value = list(check_result.values())
                     up_field = field_list[indexlist[sum_row_idx + 1]]
                     down_field_list = field_list[indexlist[sum_row_idx] + 1:indexlist[sum_row_idx + 1]]
                     down_field = ' + '.join(down_field_list)
@@ -54,13 +56,13 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result):
                         print(f"规则：{up_field} = {down_field}")
                         print(up_total)
                         print(down_total)
-                        print("出错列：", check_result)
+                        print("出错列：", error_col)
                         print()
                     # 定位
-                    up_table_info = locate_inner_chart_info(pdf, doc, chart_name, [up_field], [len(up_total) + 1], [check_result])
+                    up_table_info = locate_inner_chart_info(pdf, doc, chart_name, [up_field], [len(up_total) + 1], [error_col])
                     col_len_list = [len(down_total) + 1 for i in range(len(down_field_list))]  # 所有每行的长度列表
-                    check_result_list = [check_result for i in range(len(down_field_list))]  # 每行的错误列
-                    down_table_info = locate_inner_chart_info(pdf, doc, chart_name, down_field_list, col_len_list, check_result_list)
+                    error_col_list = [error_col for i in range(len(down_field_list))]  # 每行的错误列
+                    down_table_info = locate_inner_chart_info(pdf, doc, chart_name, down_field_list, col_len_list, error_col_list)
                     if (not up_table_info) or (not down_table_info):
                         continue
                     json_item = {
@@ -69,7 +71,8 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result):
                         "表格编号": chart_name,
                         "表格内容": table_dict[chart_name],
                         "上勾稽表字段": up_table_info[0],
-                        "下勾稽表字段": down_table_info
+                        "下勾稽表字段": down_table_info,
+                        "差值": diff_value
                     }
                     inner_result.append(json_item)
     return inner_result

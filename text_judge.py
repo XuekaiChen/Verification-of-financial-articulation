@@ -97,6 +97,8 @@ def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list,
                 # 勾稽校验
                 check_result = equal_check(txt_num_list, chart_num_list)
                 if check_result != "字段匹配错误":  # 只对正确匹配到内容的字段进行定位
+                    error_col = list(check_result.keys())
+                    diff_value = list(check_result.values())
                     if not check_result:  # check_result为空表示校验正确
                         true_or_false = "正确"
                     else:
@@ -104,27 +106,32 @@ def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list,
                         print(f"规则：{matches[0]} = {matches[1]}")
                         print(txt_num_list)
                         print(chart_num_list)
-                        print("出错列：", check_result)
+                        print("出错列：", error_col)
                         print()
-                    output_item = {
-                        "名称": true_or_false,
-                        "规则": matches[0] + " = " + matches[1],
-                    }
+
                     # 在文本中定位内容
                     sentence = word_dict[matches[0]]["整句话"]
                     text_location = locate_txt_info(pdf, doc, sentence)  # 元素为json的列表
-                    output_item["关联文本"] = {
-                        "内容值": sentence,
-                        "位置": text_location
-                    }
+
                     # 在表格中定位内容
                     chart_json_list = []
                     for table_name in inverted_list[matches[1]]:
-                        table_info = locate_cross_chart_info(pdf, doc, table_name, [matches[1]], [len(chart_num_list) + 1], [check_result])
+                        table_info = locate_cross_chart_info(pdf, doc, table_name, [matches[1]], [len(chart_num_list) + 1], [error_col])
                         if not table_info:
                             continue
                         chart_json_list.append(table_info[0])
-                    output_item["勾稽表"] = chart_json_list
+
+                    # 加入列表项
+                    output_item = {
+                        "名称": true_or_false,
+                        "规则": matches[0] + " = " + matches[1],
+                        "关联文本": {
+                            "内容值": sentence,
+                            "位置": text_location
+                        },
+                        "勾稽表": chart_json_list,
+                        "差值": diff_value
+                    }
                     result_list.append(output_item)
 
     return result_list
