@@ -6,7 +6,7 @@ import pandas as pd
 def get_rule(path):
     global rulejson
     if not os.path.exists(path):
-        print("规则路径不存在......")
+        print(f"规则路径{os.path.abspath(path)}不存在......")
         sys.exit()
     excelall = os.listdir(path)
     for excel in excelall:

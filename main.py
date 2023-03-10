@@ -30,6 +30,7 @@ import warnings
 if __name__ == "__main__":
     start = time.time()
     # determine if application is a script file or frozen exe
+    application_path = ""
     if getattr(sys, 'frozen', False):
         application_path = os.path.dirname(sys.executable)
     elif __file__:
@@ -39,8 +40,8 @@ if __name__ == "__main__":
     # cmd传参，建立文件夹
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser(description='Verification of financial articulation')
-    parser.add_argument('-url', type=str, default="http://reportdocs.static.szse.cn/UpFiles/rasinfodisc1/202301/RAS_202301_51D8A3ECEC0E490684B762B34B84D833.pdf?v=%E4%B8%8A%E4%BC%9A%E7%A8%BF", help='Download link for the target pdf')
-    parser.add_argument('-file_id', type=str, default="00001", help='Unique pdf file identification')
+    parser.add_argument('-url', type=str, default="http://static.sse.com.cn/stock/information/c/202303/21467c3ee2ae44519019a2d066997771.pdf", help='Download link for the target pdf')
+    parser.add_argument('-file_id', type=str, default="1300", help='Unique pdf file identification')
     args = parser.parse_args()
     print("URL:\t", args.url)
     print("file_id:\t", args.file_id)

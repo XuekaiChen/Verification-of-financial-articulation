@@ -47,7 +47,7 @@ def get_error_list(list1, list2) -> dict:
             temp_error[idx] = [i, j]
     # 按量级处理差值问题
     for key, value in temp_error.items():
-        error_dict[key] = value[0]*magnitude - value[1]
+        error_dict[key] = round(value[0]*magnitude - value[1], 2)
     return error_dict
 
 

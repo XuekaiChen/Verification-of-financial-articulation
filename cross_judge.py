@@ -39,7 +39,7 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result):
     for excel_name, chart in chart_data.items():
         for field_name, field_value in chart.items():
             # 排除非数字列表 或 ”合计“等字段
-            if (not is_number_list(field_value)) or (field_name in general_field_name):
+            if field_name == "title" or (not is_number_list(field_value)) or (field_name in general_field_name):
                 continue
             elif field_name not in json_data:
                 json_data[field_name] = [field_value]
@@ -51,6 +51,9 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result):
                     if check_result != "字段匹配错误":
                         error_col = list(check_result.keys())
                         diff_value = list(check_result.values())
+                        # 同名字段匹配稍严一些，列表含0或错误列太多很可能是不同内容，直接跳过
+                        if (len(error_col) == len(field_value)-1) or (0 in exist_value) or (0 in field_value):
+                            continue
                         if not check_result:  # check_result为空表示校验正确
                             true_or_false = "正确"
                         else:
