@@ -29,6 +29,12 @@ import warnings
 
 if __name__ == "__main__":
     start = time.time()
+    # determine if application is a script file or frozen exe
+    if getattr(sys, 'frozen', False):
+        application_path = os.path.dirname(sys.executable)
+    elif __file__:
+        application_path = os.path.dirname(os.path.abspath(__file__))
+    os.chdir(application_path)  # 切换工作目录
 
     # cmd传参，建立文件夹
     warnings.filterwarnings("ignore")
@@ -44,17 +50,18 @@ if __name__ == "__main__":
     # 下载文件
     file_path = os.path.join(args.file_id, args.file_id + ".pdf")
     print("正在下载待校验PDF文件......")
-    wget.download(url=args.url, out=file_path)
+    if not os.path.exists(file_path):
+        wget.download(url=args.url, out=file_path)
 
     # 定义预备变量
     rule_path = "rules"
     cross_result = []
     inner_result = []
     text_result = []
-    cross_out_path = os.path.join(args.file_id, "main_cross.json")
-    inner_out_path = os.path.join(args.file_id, "main_inner.json")
-    text_out_path = os.path.join(args.file_id, "main_text.json")
-    pdf_out_path = os.path.join(args.file_id, "main_highlight.pdf")
+    cross_out_path = os.path.join(args.file_id, args.file_id + "_main_cross.json")
+    inner_out_path = os.path.join(args.file_id, args.file_id + "_main_inner.json")
+    text_out_path = os.path.join(args.file_id, args.file_id + "_main_text.json")
+    pdf_out_path = os.path.join(args.file_id, args.file_id + "_main_highlight.pdf")
 
     # 打开文件
     doc = fitz.open(file_path)
