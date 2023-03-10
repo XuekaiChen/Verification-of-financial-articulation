@@ -7,7 +7,6 @@ import os
 import json
 import pdfplumber
 import pandas as pd
-from tqdm import tqdm
 
 
 def extract_all_table(pdf, out_path=False):
@@ -15,7 +14,7 @@ def extract_all_table(pdf, out_path=False):
     temp_table = None
     df_tables = []
     table_name = []
-    for page in tqdm(pdf.pages[1:]):
+    for page in pdf.pages[1:]:
         text = page.extract_text()
         page_num = int(text.strip().split("\n")[-1].split("-")[-1])  # 文本最后一行为页码
         # # 招股书页码指定
