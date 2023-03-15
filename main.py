@@ -40,7 +40,13 @@ if __name__ == "__main__":
     # cmd传参，建立文件夹
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser(description='Verification of financial articulation')
-    parser.add_argument('-url', type=str, default="http://static.sse.com.cn/stock/information/c/202303/21467c3ee2ae44519019a2d066997771.pdf", help='Download link for the target pdf')
+    # 招股书样例
+    # parser.add_argument('-url', type=str, default="http://reportdocs.static.szse.cn/UpFiles/rasinfodisc1/202301/RAS_202301_51D8A3ECEC0E490684B762B34B84D833.pdf?v=%E4%B8%8A%E4%BC%9A%E7%A8%BF", help='Download link for the target pdf')
+    # 募集说明书样例
+    parser.add_argument('-url', type=str,
+                        default="http://static.sse.com.cn/stock/information/c/202303/21467c3ee2ae44519019a2d066997771.pdf",
+                        help='Download link for the target pdf')
+
     parser.add_argument('-file_id', type=str, default="1300", help='Unique pdf file identification')
     args = parser.parse_args()
     print("URL:\t", args.url)
@@ -52,7 +58,11 @@ if __name__ == "__main__":
     file_path = os.path.join(args.file_id, args.file_id + ".pdf")
     print("正在下载待校验PDF文件......")
     if not os.path.exists(file_path):
-        wget.download(url=args.url, out=file_path)
+        try:
+            wget.download(url=args.url, out=file_path)
+        except:
+            print("无法下载pdf文件，请检查url是否正确。")
+            sys.exit()
 
     # 定义预备变量
     rule_path = "rules"

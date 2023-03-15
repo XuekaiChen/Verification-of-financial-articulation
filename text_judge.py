@@ -15,6 +15,18 @@ punctuation = '[\u3002\uff1b\uff0c\uff1a\u201c\u201d\uff08\uff09\uff1f\u300a\u30
 float_pattern = "[-+]?[0-9]*\.?[0-9]+"
 
 
+# 对连续缺省数值的表格字段，删除0
+def filter_value(n_list):
+    count = 0
+    for i in n_list:
+        if i == 0:
+            count += 1
+    if count >= 2:
+        n_list = list(filter(lambda x: x != 0, n_list))
+    return n_list
+
+
+# 匹配字符串
 def match_strings(a: list, b: list):
     matches = []
     # 依次找出b中与a每个元素最相似的元素
@@ -95,6 +107,7 @@ def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list,
         for chart_num_list in chart_num_list_list:
             if matches[2] >= 80:
                 # 勾稽校验
+                chart_num_list = filter_value(chart_num_list)
                 check_result = equal_check(txt_num_list, chart_num_list)
                 if check_result != "字段匹配错误":  # 只对正确匹配到内容的字段进行定位
                     error_col = list(check_result.keys())
