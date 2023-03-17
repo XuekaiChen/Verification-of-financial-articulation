@@ -47,7 +47,7 @@ if __name__ == "__main__":
                         default="http://static.sse.com.cn/stock/information/c/202303/21467c3ee2ae44519019a2d066997771.pdf",
                         help='Download link for the target pdf')
 
-    parser.add_argument('-file_id', type=str, default="1300", help='Unique pdf file identification')
+    parser.add_argument('-file_id', type=str, default="example1", help='Unique pdf file identification')
     args = parser.parse_args()
     print("URL:\t", args.url)
     print("file_id:\t", args.file_id)
