@@ -14,13 +14,11 @@ def extract_all_table(pdf, out_path=False):
     temp_table = None
     df_tables = []
     table_name = []
-    for page in pdf.pages[1:]:
-        text = page.extract_text()
-        page_num = int(text.strip().split("\n")[-1].split("-")[-1])  # 文本最后一行为页码
+    for page_index, page in enumerate(pdf.pages):
         # # 招股书页码指定
-        # if page_num < 211:
+        # if page_index < 211:
         #     continue
-        # if page_num >= 310:
+        # if page_index >= 310:
         #     break
         if len(page.extract_tables()) == 0:
             continue
@@ -35,7 +33,7 @@ def extract_all_table(pdf, out_path=False):
                         # 与temp拼合
                         df = pd.DataFrame(table)
                         temp_table = pd.concat([temp_table, df], axis=0)
-                        table_name.append(str(page_num) + "-" + str(table_id + 1))
+                        table_name.append(str(page_index) + "-" + str(table_id + 1))
                         if page.chars[-1].get('y0') < page.bbox[3] - page.find_tables()[table_id].bbox[3]:  # 该表不是页尾，结束拼接，加入table_list，temp置空
                             df_tables.append([temp_table, table_name])
                             temp_table = None
@@ -48,21 +46,21 @@ def extract_all_table(pdf, out_path=False):
                         table_name = []
                         if page.chars[-1].get('y0') < page.bbox[3] - page.find_tables()[table_id].bbox[3]:  # 该表不是页尾，直接加入table_list
                             df = pd.DataFrame(table)
-                            table_name = [str(page_num) + "-" + str(table_id + 1)]
+                            table_name = [str(page_index) + "-" + str(table_id + 1)]
                             df_tables.append([df, table_name])
                             table_name = []
                         else:  # 该表是页尾，存入temp
                             temp_table = pd.DataFrame(table)
-                            table_name.append(str(page_num) + "-" + str(table_id + 1))
+                            table_name.append(str(page_index) + "-" + str(table_id + 1))
                 else:  # temp无值（上个表页尾不是表）
                     if page.chars[-1].get('y0') < page.bbox[3] - page.find_tables()[table_id].bbox[3]:  # 该表不是页尾，直接加入table_list
                         df = pd.DataFrame(table)
-                        table_name = [str(page_num) + "-" + str(table_id + 1)]
+                        table_name = [str(page_index) + "-" + str(table_id + 1)]
                         df_tables.append([df, table_name])
                         table_name = []
                     else:  # 该表是页尾，存入temp
                         temp_table = pd.DataFrame(table)
-                        table_name.append(str(page_num) + "-" + str(table_id + 1))
+                        table_name.append(str(page_index) + "-" + str(table_id + 1))
 
     table_dict = {}
     for table_ele in df_tables:
