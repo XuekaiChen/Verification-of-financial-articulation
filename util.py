@@ -18,7 +18,7 @@ def is_number(target_str):
         return True
     except:
         pass
-    if target_str.isnumeric():
+    if target_str.isdecimal():
         return True
     return False
 
