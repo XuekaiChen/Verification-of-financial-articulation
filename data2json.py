@@ -28,6 +28,17 @@ def getTitle(inloc, Elecount, list1, row):
     return title_list
 
 
+def judge_unit(table_list):
+    last = table_list[0][-1]
+    flag = True
+    for i in table_list[0][0:-1]:
+        if i is not None:
+            flag = False
+    if flag or last[0:3] == '单位：':
+        table_list.pop(0)
+    return table_list
+
+
 def excels2json(table_dict, out_json=False):
     # 将所有表格以行名为索引记录到字典里，输出json文件
     data_all = {}
@@ -37,6 +48,7 @@ def excels2json(table_dict, out_json=False):
         Elecount = 0
         inlocList = []
         flag = True
+        table = judge_unit(table)
         for row in table:  # 格式处理
             a = a + 1
             if a == 0:
