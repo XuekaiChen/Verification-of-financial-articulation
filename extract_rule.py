@@ -10,7 +10,7 @@ def get_rule(path):
         sys.exit()
     excelall = os.listdir(path)
     for excel in excelall:
-        xlsx = pd.ExcelFile(path + '\\' + excel)
+        xlsx = pd.ExcelFile(os.path.join(path, excel))
         sheet1 = pd.read_excel(xlsx, 'Sheet1', keep_default_na=False)
         if 'Unnamed: 3' and 'Unnamed: 5' not in sheet1:
             continue
