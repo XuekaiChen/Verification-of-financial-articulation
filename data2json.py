@@ -34,7 +34,7 @@ def judge_unit(table_list):
     for i in table_list[0][0:-1]:
         if i is not None:
             flag = False
-    if flag or last[0:3] == '单位：':
+    if flag or (not last) or last[0:3] == '单位：':
         table_list.pop(0)
     return table_list
 
