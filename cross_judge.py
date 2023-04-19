@@ -45,6 +45,7 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result):
                 json_data[field_name] = [field_value]
                 inverted_list[field_name] = [excel_name]
             else:  # json中已有同名字段数据，与每个字段数据比对，若可以匹配，则定位；若匹配错误，则加入字段数据
+                continue
                 for idx, exist_value in enumerate(json_data[field_name]):
                     # 校验正确，输出[]；校验错误，输出[1,2]；未配对，输出“字段匹配错误”，加入列表
                     check_result = equal_check(exist_value, field_value)
