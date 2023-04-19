@@ -63,7 +63,7 @@ def equal_check(list1, list2):
         error_list1 = get_error_list(list1, list2)
         error_list2 = get_error_list(list1, list2[::-1])  # 考虑文表勾稽经常有反着说的
         error_list = min([error_list1, error_list2], key=len)
-        if len(error_list) != len(list1):
+        if len(error_list) != len(list1) and (0 not in list1) and (0 not in list2):
             return error_list
         else:  # 全都不一样说明匹配错误
             return "字段匹配错误"
