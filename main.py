@@ -43,8 +43,8 @@ if __name__ == "__main__":
     # 招股书
     # parser.add_argument('-url', type=str, default="http://reportdocs.static.szse.cn/UpFiles/rasinfodisc1/202301/RAS_202301_51D8A3ECEC0E490684B762B34B84D833.pdf?v=%E4%B8%8A%E4%BC%9A%E7%A8%BF", help='Download link for the target pdf')
     # 债券募集说明书
-    parser.add_argument('-url', type=str,default="http://www.sse.com.cn/disclosure/bond/announcement/company/c/new/2023-04-04/115197_20230404_HOGS.pdf", help='Download link for the target pdf')
-    parser.add_argument('-file_id', type=str, default="error1", help='Unique pdf file identification')
+    parser.add_argument('-url', type=str,default="http://www.sse.com.cn/disclosure/bond/announcement/company/c/new/2023-02-20/138955_20230220_IB2Q.pdf", help='Download link for the target pdf')
+    parser.add_argument('-file_id', type=str, default="retest4", help='Unique pdf file identification')
     args = parser.parse_args()
     print("URL:\t", args.url)
     print("file_id:\t", args.file_id)
@@ -62,9 +62,11 @@ if __name__ == "__main__":
     cross_result = []
     inner_result = []
     text_result = []
+    correct_dict = {"跨表勾稽": [], "表内勾稽": [], "文表勾稽": []}
     cross_out_path = os.path.join(args.file_id, args.file_id + "_main_cross.json")
     inner_out_path = os.path.join(args.file_id, args.file_id + "_main_inner.json")
     text_out_path = os.path.join(args.file_id, args.file_id + "_main_text.json")
+    correct_dict_path = os.path.join(args.file_id, args.file_id + "_main_correct.json")
     pdf_out_path = os.path.join(args.file_id, args.file_id + "_main_highlight.pdf")
 
     # 打开文件
@@ -79,15 +81,16 @@ if __name__ == "__main__":
     json_data = excels2json(table_dict=table_dict)
 
     print("----------------------同名字段跨表校验-------------------------")
-    json_data2, inverted_list, cross_result = precheck_and_get_dict(
+    json_data2, inverted_list, cross_result, correct_dict = precheck_and_get_dict(
         chart_data=json_data,
         pdf=pdf,
         doc=doc,
-        cross_result=cross_result
+        cross_result=cross_result,
+        correct_dict=correct_dict
     )
 
     print("----------------------规则校验-------------------------")
-    cross_result, inner_result = judge_from_rule(
+    cross_result, inner_result, correct_dict = judge_from_rule(
         chart_data2=json_data2,
         table_dict=table_dict,
         rules=rule_dict,
@@ -95,25 +98,28 @@ if __name__ == "__main__":
         doc=doc,
         inverted_list=inverted_list,
         cross_result=cross_result,
-        inner_result=inner_result
+        inner_result=inner_result,
+        correct_dict=correct_dict
     )
 
     print("----------------------表内校验-------------------------")
-    inner_result = inner_check(
+    inner_result, correct_dict = inner_check(
         chart_data=json_data,
         table_dict=table_dict,
         pdf=pdf,
         doc=doc,
-        inner_result=inner_result
+        inner_result=inner_result,
+        correct_dict=correct_dict
     )
 
     print("----------------------文表校验-------------------------")
-    text_result = text_check(
+    text_result, correct_dict = text_check(
         chart_data=json_data2,
         pdf=pdf,
         doc=doc,
         inverted_list=inverted_list,
-        text_result=text_result
+        text_result=text_result,
+        correct_dict=correct_dict
     )
 
     # 存储输出json文件
@@ -123,6 +129,8 @@ if __name__ == "__main__":
         json.dump(inner_result, f, ensure_ascii=False)
     with open(text_out_path, 'w', encoding='utf-8') as f:
         json.dump(text_result, f, ensure_ascii=False)
+    with open(correct_dict_path, 'w', encoding='utf-8') as f:
+        json.dump(correct_dict, f, ensure_ascii=False)
     doc.save(pdf_out_path)
     pdf.close()
     doc.close()

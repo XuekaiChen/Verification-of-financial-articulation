@@ -27,6 +27,7 @@ def getTitle(inloc, Elecount, list1, row):
         title_list.append(titley)
     return title_list
 
+
 def judge_unit(table_list):
     last = table_list[0][-1]
     flag = True
@@ -45,7 +46,7 @@ def excels2json(table_dict, out_json=False):
     # 将所有表格以行名为索引记录到字典里，输出json文件
     data_all = {}
     for table_name, table in table_dict.items():
-        data_excel = {}
+        data_excel = []
         a = -1
         Elecount = 0
         inlocList = []
@@ -59,20 +60,22 @@ def excels2json(table_dict, out_json=False):
             else:
                 if row[0] == "" or row[0] is None:
                     row[0] = table[a - 1][0]
+                elif row[0] is not None and '其中' in row[0]:
+                    continue
                 if flag:
                     if str(row[0]) == title and a + 1 < len(table) and str(table[a + 1][0]) != title and str(
                             table[a - 1][0]) == title:
                         Elecount = Elecount + 1
                     else:
                         flag = False
-            if len(row) < 5 and row[-1] == '':
-                continue
+            # if len(row) < 4 and row[-1] == '':
+            #     continue
             if type(row[0]) == str:
                 row[0] = row[0].replace('\n', '')
             j = len(row) - 1
             while j > 0:
-                if row[j] is None:
-                    row[j] = str("")
+                if not row[j]:
+                    row[j] = 0
                 if type(row[j]) == str:
                     row[j] = row[j].replace(',', '')
                 if row[j] == '未披露':
@@ -95,11 +98,11 @@ def excels2json(table_dict, out_json=False):
                 row[inloc] = reduce(lambda x, y: str(x) + str(y), row[0:inloc + 1])
                 row[inloc] = row[inloc].replace('\n', '')
             if isinstance(row[inloc], str) and is_number_list(row[inloc + 1:len(row)]):
-                data_excel[row[inloc]] = row[inloc + 1:len(row)]
+                data_excel.append({row[inloc]: row[inloc + 1:len(row)]})
                 inlocList.append(inloc)
 
         if data_excel:
-            data_excel['title'] = getTitle(min(inlocList), Elecount, table, row)
+            data_excel.append({"title": getTitle(min(inlocList), Elecount, table, row)})
             data_all[table_name] = data_excel
 
     if out_json:

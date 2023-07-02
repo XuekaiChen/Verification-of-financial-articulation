@@ -47,7 +47,12 @@ def get_error_list(list1, list2) -> dict:
             temp_error[idx] = [i, j]
     # 按量级处理差值问题
     for key, value in temp_error.items():
-        error_dict[key] = round(value[0]*magnitude - value[1], 2)
+        if magnitude == 10000:  # 避免较小数乘10000后出问题
+            diff = abs(value[0] - value[1] * 0.0001)
+        else:
+            diff = abs(value[0] * magnitude - value[1])
+        if diff >= 0.02:
+            error_dict[key] = round(value[0]*magnitude - value[1], 2)
     return error_dict
 
 
@@ -63,7 +68,7 @@ def equal_check(list1, list2):
         error_list1 = get_error_list(list1, list2)
         error_list2 = get_error_list(list1, list2[::-1])  # 考虑文表勾稽经常有反着说的
         error_list = min([error_list1, error_list2], key=len)
-        if len(error_list) != len(list1) and (0 not in list1) and (0 not in list2):
+        if (len(error_list) != len(list1)) and (0 not in list1) and (0 not in list2):
             return error_list
         else:  # 全都不一样说明匹配错误
             return "字段匹配错误"

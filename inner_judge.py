@@ -17,23 +17,23 @@ def iseverylist_leneaual(list_a):
     return True
 
 
-def inner_check(chart_data, table_dict, pdf, doc, inner_result):
+def inner_check(chart_data, table_dict, pdf, doc, inner_result, correct_dict):
     for chart_name, chart in chart_data.items():
         # 表内字段名称列表
-        field_list = list(chart.keys())
+        field_list = [list(i.keys())[0] for i in chart]
         # 判定所有数字列表长度是否相等，获取数字列表长度
-        if not iseverylist_leneaual(list(chart.values())):
+        field_value = [list(i.values())[0] for i in chart]
+        if not iseverylist_leneaual(field_value):
             continue
         else:
-            value_len = len(list(chart.values())[0])
+            value_len = len(field_value[0])
 
         # 二维数字列表
-        value_list = list(map(lambda x: [0] * value_len if x == [] else x, list(chart.values())))
+        value_list = list(map(lambda x: [0] * value_len if x == [] else x, field_value))
         indexlist = [-1]
         for idx, field_name in enumerate(field_list):
             if '合计' in field_name or "小计" in field_name:
                 indexlist.append(idx)
-
         if indexlist != [-1]:
             for sum_row_idx in range(len(indexlist)-1):
                 up_total = value_list[indexlist[sum_row_idx + 1]]  # 合计的数值
@@ -46,18 +46,24 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result):
                 if check_result != "字段匹配错误":
                     error_col = list(check_result.keys())
                     diff_value = list(check_result.values())
+                    if len(error_col) >= 1 / 2 * min(len(up_total), len(down_total)):  # 错误过多，说明没正确匹配
+                        continue
                     up_field = field_list[indexlist[sum_row_idx + 1]]
                     down_field_list = field_list[indexlist[sum_row_idx] + 1:indexlist[sum_row_idx + 1]]
                     down_field = ' + '.join(down_field_list)
                     if not check_result:  # check_result为空表示校验正确
-                        true_or_false = "正确"
-                    else:
-                        true_or_false = "错误"
-                        print(f"规则：{up_field} = {down_field}")
-                        print(up_total)
-                        print(down_total)
-                        print("出错列：", error_col)
-                        print()
+                        correct_out = f"校验正确！条目：{up_field} = {down_field}"
+                        correct_dict['表内勾稽'].append(correct_out)
+                        print(correct_out)
+                        continue
+
+                    print(chart_name)
+                    print(f"规则：{up_field} = {down_field}")
+                    print(up_total)
+                    print(down_total)
+                    print("出错列：", error_col)
+                    print("差值：", diff_value)
+                    print()
                     # 定位
                     up_table_info = locate_inner_chart_info(pdf, doc, chart_name, [up_field], [len(up_total) + 1], [error_col])
                     col_len_list = [len(down_total) + 1 for i in range(len(down_field_list))]  # 所有每行的长度列表
@@ -66,7 +72,6 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result):
                     if (not up_table_info) or (not down_table_info):
                         continue
                     json_item = {
-                        "名称": true_or_false,
                         "规则": up_field + " = " + down_field,
                         "表格编号": chart_name,
                         "表格内容": table_dict[chart_name],
@@ -75,7 +80,8 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result):
                         "差值": diff_value
                     }
                     inner_result.append(json_item)
-    return inner_result
+
+    return inner_result, correct_dict
 
 
 if __name__ == "__main__":
