@@ -60,7 +60,7 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result, correct_dict):
                         if len(error_col) == len(field_value)-1:
                             continue
                         if not check_result:  # check_result为空表示校验正确
-                            correct_out = f"校验正确！条目：{field_name} = {field_name}"
+                            correct_out = f"校验正确：{field_name} = {field_name}"
                             correct_dict['跨表勾稽'].append(correct_out)
                             print(correct_out)
                             continue
@@ -129,7 +129,7 @@ def judge_from_rule(chart_data2, table_dict, rules, pdf, doc, inverted_list, cro
                             if len(error_col) >= 1/2 * min(len(up_total), len(down_total)):  # 错误过多，说明没正确匹配
                                 continue
                             if not check_result:  # check_result为空表示校验正确
-                                correct_out = f"校验正确！条目：{up_field} = {down_field}"
+                                correct_out = f"校验正确：{up_field} = {down_field}"
                                 correct_dict[f'{xsltype}勾稽'].append(correct_out)
                                 print(correct_out)
                                 continue
