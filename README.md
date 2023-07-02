@@ -30,6 +30,7 @@
     - `main_cross.json`：跨表勾稽的输出文件
     - `main_inner.json`：表内勾稽的输出文件
     - `main_text.json`：文表勾稽的输出文件
+    - `main_correct.json`：校验成功的表项
     - `main_highlight.pdf`：pdf文档对校验内容经过自动高亮显示后的效果
     - 其他：各自校验文件单独运行的输出结果
 
