@@ -52,7 +52,7 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result, correct_dict):
                     down_field_list = field_list[indexlist[sum_row_idx] + 1:indexlist[sum_row_idx + 1]]
                     down_field = ' + '.join(down_field_list)
                     if not check_result:  # check_result为空表示校验正确
-                        correct_out = f"校验正确！条目：{up_field} = {down_field}"
+                        correct_out = f"校验正确：{up_field} = {down_field}"
                         correct_dict['表内勾稽'].append(correct_out)
                         print(correct_out)
                         continue
