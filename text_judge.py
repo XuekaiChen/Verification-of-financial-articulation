@@ -88,7 +88,7 @@ def extract_unverified_text(pdf):
     return word_articulation_dict
 
 
-def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list, result_list):
+def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list, result_list, correct_dict):
     for matches in match_list:
         txt_num_list = word_dict[matches[0]]["数字列表"]
         chart_num_list_list = chart_dict[matches[1]]
@@ -99,15 +99,20 @@ def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list,
                 if check_result != "字段匹配错误":  # 只对正确匹配到内容的字段进行定位
                     error_col = list(check_result.keys())
                     diff_value = list(check_result.values())
+                    if len(error_col) >= 1 / 2 * min(len(txt_num_list), len(chart_num_list)):  # 错误过多，说明没正确匹配
+                        continue
                     if not check_result:  # check_result为空表示校验正确
-                        true_or_false = "正确"
-                    else:
-                        true_or_false = "错误"
-                        print(f"规则：{matches[0]} = {matches[1]}")
-                        print(txt_num_list)
-                        print(chart_num_list)
-                        print("出错列：", error_col)
-                        print()
+                        correct_out = f"校验正确：{matches[0]} = {matches[1]}"
+                        correct_dict['文表勾稽'].append(correct_out)
+                        print(correct_out)
+                        continue
+
+                    print(f"规则：{matches[0]} = {matches[1]}")
+                    print(txt_num_list)
+                    print(chart_num_list)
+                    print("出错列：", error_col)
+                    print("差值：", diff_value)
+                    print()
 
                     # 在文本中定位内容
                     sentence = word_dict[matches[0]]["整句话"]
@@ -123,7 +128,6 @@ def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list,
 
                     # 加入列表项
                     output_item = {
-                        "名称": true_or_false,
                         "规则": matches[0] + " = " + matches[1],
                         "关联文本": {
                             "内容值": sentence,
@@ -134,14 +138,14 @@ def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list,
                     }
                     result_list.append(output_item)
 
-    return result_list
+    return result_list, correct_dict
 
 
-def text_check(chart_data, pdf, doc, inverted_list, text_result):
+def text_check(chart_data, pdf, doc, inverted_list, text_result, correct_dict):
     text_data = extract_unverified_text(pdf)
     best_matches = match_strings(list(text_data.keys()), list(chart_data.keys()))
-    text_result = check_word_chart(pdf, doc, text_data, chart_data, best_matches, inverted_list, text_result)
-    return text_result
+    text_result, correct_dict = check_word_chart(pdf, doc, text_data, chart_data, best_matches, inverted_list, text_result, correct_dict)
+    return text_result, correct_dict
 
 
 if __name__ == "__main__":
