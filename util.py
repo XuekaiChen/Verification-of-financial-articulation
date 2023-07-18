@@ -52,7 +52,7 @@ def get_error_list(list1, list2) -> dict:
         else:
             diff = abs(value[0] * magnitude - value[1])
         if diff >= 0.02:
-            error_dict[key] = round(value[0]*magnitude - value[1], 2)
+            error_dict[key] = round(diff, 2)
     return error_dict
 
 
