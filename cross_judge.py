@@ -50,7 +50,7 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result, correct_dict):
                 continue
                 for idx, exist_value in enumerate(json_data[field_name]):
                     # 校验正确，输出[]；校验错误，输出[1,2]；未配对，输出“字段匹配错误”，加入列表
-                    check_result = equal_check(exist_value, field_value)
+                    check_result, _ = equal_check(exist_value, field_value)
                     if check_result != "字段匹配错误":
                         error_col = list(check_result.keys())
                         diff_value = list(check_result.values())
@@ -60,7 +60,7 @@ def precheck_and_get_dict(chart_data, pdf, doc, cross_result, correct_dict):
                         if len(error_col) == len(field_value)-1:
                             continue
                         if not check_result:  # check_result为空表示校验正确
-                            correct_out = f"校验正确：{field_name} = {field_name}"
+                            correct_out = f"校验正确：{field_name} = {field_name}" # TODO 此处给出页码
                             correct_dict['跨表勾稽'].append(correct_out)
                             print(correct_out)
                             continue
@@ -122,7 +122,7 @@ def judge_from_rule(chart_data2, table_dict, rules, pdf, doc, inverted_list, cro
                             elif operators[ele_idx] == '/':
                                 down_total /= element
                         # 校验
-                        check_result = equal_check(up_total, down_total)
+                        check_result, _ = equal_check(up_total, down_total)
                         if check_result != "字段匹配错误":
                             error_col = list(check_result.keys())
                             diff_value = list(check_result.values())

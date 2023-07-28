@@ -66,14 +66,17 @@ def equal_check(list1, list2):
     # 等长列表判定元素
     if len(list1) == len(list2):
         error_list1 = get_error_list(list1, list2)
-        error_list2 = get_error_list(list1, list2[::-1])  # 考虑文表勾稽经常有反着说的
+        error_list2 = get_error_list(list1[::-1], list2)  # 考虑文表勾稽经常有反着说的
         error_list = min([error_list1, error_list2], key=len)
         if (len(error_list) != len(list1)) and (0 not in list1) and (0 not in list2):
-            return error_list
+            if error_list == error_list2:
+                return error_list, True  # 第二个参数为是否翻转
+            else:
+                return error_list, False
         else:  # 全都不一样说明匹配错误
-            return "字段匹配错误"
+            return "字段匹配错误", False
     else:
-        return "字段匹配错误"
+        return "字段匹配错误", False
 
 
 # 给出文本，返回其在文档中的位置
@@ -206,4 +209,5 @@ def locate_inner_chart_info(pdf, doc, chart_name, field_list, col_num_list, erro
                     }
                     result_list.append(json_result)
     return result_list
+
 

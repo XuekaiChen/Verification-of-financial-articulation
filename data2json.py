@@ -68,8 +68,8 @@ def excels2json(table_dict, out_json=False):
                         Elecount = Elecount + 1
                     else:
                         flag = False
-            # if len(row) < 4 and row[-1] == '':
-            #     continue
+            if any(row[1:]) is False:  # 去掉数字列表全为0的项
+                continue
             if type(row[0]) == str:
                 row[0] = row[0].replace('\n', '')
             j = len(row) - 1

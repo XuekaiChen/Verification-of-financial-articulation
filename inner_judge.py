@@ -42,7 +42,7 @@ def inner_check(chart_data, table_dict, pdf, doc, inner_result, correct_dict):
                 if start_index >= end_index:  # 两行紧挨着出现合计的情况
                     continue
                 down_total = np.sum(np.array(value_list[start_index:end_index]), axis=0)
-                check_result = equal_check(up_total, down_total)
+                check_result, _ = equal_check(up_total, down_total)
                 if check_result != "字段匹配错误":
                     error_col = list(check_result.keys())
                     diff_value = list(check_result.values())

@@ -41,10 +41,10 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser(description='Verification of financial articulation')
     # 招股书
-    # parser.add_argument('-url', type=str, default="http://reportdocs.static.szse.cn/UpFiles/rasinfodisc1/202301/RAS_202301_51D8A3ECEC0E490684B762B34B84D833.pdf?v=%E4%B8%8A%E4%BC%9A%E7%A8%BF", help='Download link for the target pdf')
+    parser.add_argument('-url', type=str, default="https://pdf.dfcfw.com/pdf/H2_AN202306301591956869_1.pdf", help='Download link for the target pdf')
     # 债券募集说明书
-    parser.add_argument('-url', type=str,default="http://www.sse.com.cn/disclosure/bond/announcement/company/c/new/2023-02-20/138955_20230220_IB2Q.pdf", help='Download link for the target pdf')
-    parser.add_argument('-file_id', type=str, default="retest4", help='Unique pdf file identification')
+    # parser.add_argument('-url', type=str,default="http://www.sse.com.cn/disclosure/bond/announcement/company/c/new/2023-02-16/138904_20230216_S2CY.pdf", help='Download link for the target pdf')
+    parser.add_argument('-file_id', type=str, default="example2", help='Unique pdf file identification')
     args = parser.parse_args()
     print("URL:\t", args.url)
     print("file_id:\t", args.file_id)

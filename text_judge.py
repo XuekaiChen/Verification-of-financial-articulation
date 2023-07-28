@@ -7,7 +7,7 @@ import pdfplumber
 import re
 import json
 import fitz
-from fuzzywuzzy import process
+import difflib
 from util import to_float_list, is_number_list, equal_check, locate_cross_chart_info, locate_txt_info
 
 
@@ -19,8 +19,9 @@ def match_strings(a: list, b: list):
     matches = []
     # 依次找出b中与a每个元素最相似的元素
     for string1 in a:
-        best_match = process.extractOne(string1, b)
-        matches.append((string1, best_match[0], best_match[1]))
+        best_match = difflib.get_close_matches(string1, b, n=1)
+        if best_match:
+            matches.append((string1, best_match[0]))
     return matches
 
 
@@ -90,53 +91,55 @@ def extract_unverified_text(pdf):
 
 def check_word_chart(pdf, doc, word_dict, chart_dict, match_list, inverted_list, result_list, correct_dict):
     for matches in match_list:
+        if "公司递延所得税资产" == matches[0]:
+            print("here")
         txt_num_list = word_dict[matches[0]]["数字列表"]
         chart_num_list_list = chart_dict[matches[1]]
         for chart_num_list in chart_num_list_list:
-            if matches[2] >= 80:
-                # 勾稽校验
-                check_result = equal_check(txt_num_list, chart_num_list)
-                if check_result != "字段匹配错误":  # 只对正确匹配到内容的字段进行定位
-                    error_col = list(check_result.keys())
-                    diff_value = list(check_result.values())
-                    if len(error_col) >= 1 / 2 * min(len(txt_num_list), len(chart_num_list)):  # 错误过多，说明没正确匹配
+            # 勾稽校验
+            check_result, reverse = equal_check(txt_num_list, chart_num_list)
+            if check_result != "字段匹配错误":  # 只对正确匹配到内容的字段进行定位
+                error_col = list(check_result.keys())
+                diff_value = list(check_result.values())
+                if len(error_col) > 1 / 2 * min(len(txt_num_list), len(chart_num_list)):  # 错误过多，说明没正确匹配
+                    continue
+                if not check_result:  # check_result为空表示校验正确
+                    correct_out = f"校验正确：{matches[0]} = {matches[1]}"
+                    correct_dict['文表勾稽'].append(correct_out)
+                    print(correct_out)
+                    continue
+
+                print(f"规则：{matches[0]} = {matches[1]}")
+                print(txt_num_list)
+                print(chart_num_list)
+                print("出错列：", error_col)
+                print("差值：", diff_value)
+                print()
+
+                # 在文本中定位内容
+                sentence = word_dict[matches[0]]["整句话"]
+                text_location = locate_txt_info(pdf, doc, sentence)  # 元素为json的列表
+
+                # 在表格中定位内容
+                chart_json_list = []
+                for table_name in inverted_list[matches[1]]:
+                    table_info = locate_cross_chart_info(pdf, doc, table_name, [matches[1]], [len(chart_num_list) + 1], [error_col])
+                    if not table_info:
                         continue
-                    if not check_result:  # check_result为空表示校验正确
-                        correct_out = f"校验正确：{matches[0]} = {matches[1]}"
-                        correct_dict['文表勾稽'].append(correct_out)
-                        print(correct_out)
-                        continue
+                    chart_json_list.append(table_info[0])
 
-                    print(f"规则：{matches[0]} = {matches[1]}")
-                    print(txt_num_list)
-                    print(chart_num_list)
-                    print("出错列：", error_col)
-                    print("差值：", diff_value)
-                    print()
-
-                    # 在文本中定位内容
-                    sentence = word_dict[matches[0]]["整句话"]
-                    text_location = locate_txt_info(pdf, doc, sentence)  # 元素为json的列表
-
-                    # 在表格中定位内容
-                    chart_json_list = []
-                    for table_name in inverted_list[matches[1]]:
-                        table_info = locate_cross_chart_info(pdf, doc, table_name, [matches[1]], [len(chart_num_list) + 1], [error_col])
-                        if not table_info:
-                            continue
-                        chart_json_list.append(table_info[0])
-
-                    # 加入列表项
-                    output_item = {
-                        "规则": matches[0] + " = " + matches[1],
-                        "关联文本": {
-                            "内容值": sentence,
-                            "位置": text_location
-                        },
-                        "勾稽表": chart_json_list,
-                        "差值": diff_value
-                    }
-                    result_list.append(output_item)
+                # 加入列表项
+                output_item = {
+                    "规则": matches[0] + " = " + matches[1],
+                    "关联文本": {
+                        "内容值": sentence,
+                        "数值列表": txt_num_list[::-1] if reverse else txt_num_list,
+                        "位置": text_location
+                    },
+                    "勾稽表": chart_json_list,
+                    "差值": diff_value
+                }
+                result_list.append(output_item)
 
     return result_list, correct_dict
 
